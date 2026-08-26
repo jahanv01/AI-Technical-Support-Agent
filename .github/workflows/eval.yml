@@ -14,9 +14,16 @@ jobs:
           python-version: "3.12"
       - run: pip install -r requirements.txt
       - name: Run eval harness
+        id: eval
         env:
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
-        run: python -m eval.run_eval
+        run: |
+          python -m eval.run_eval; EXIT=$?
+          if [ $EXIT -eq 2 ]; then
+            echo "::warning title=Daily quota exhausted::500 req/day free-tier limit reached. Wait until quota resets (midnight UTC) or rotate GEMINI_API_KEY in repo Settings → Secrets, then re-run this workflow."
+            exit 0
+          fi
+          exit $EXIT
       - name: Upload eval report
         if: always()
         uses: actions/upload-artifact@v4

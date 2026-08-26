@@ -125,9 +125,22 @@ def main() -> None:
     report_md_path.write_text(render_markdown(all_results), encoding="utf-8")
 
     passed = sum(1 for r in all_results if r["passed"])
+    failed = [r for r in all_results if not r["passed"]]
+    quota_failures = [r for r in failed if r.get("error") and "PerDay" in r["error"]]
+
     print(f"{passed}/{len(all_results)} cases passed. Wrote {report_json_path.name} and {report_md_path.name}.")
-    if passed < len(all_results):
-        raise SystemExit(1)  # non-zero exit so CI can gate on this
+
+    if quota_failures:
+        print()
+        print("QUOTA_EXHAUSTED: Daily free-tier limit (500 req/day) reached.")
+        print(f"  {len(quota_failures)} case(s) failed due to quota, not logic errors.")
+        print("  Options: wait until quota resets (midnight UTC), or rotate to a")
+        print("  new API key in repo Settings → Secrets → GEMINI_API_KEY.")
+
+    if failed:
+        # Exit 2 = quota only (operational, not a code regression).
+        # Exit 1 = at least one genuine test failure.
+        raise SystemExit(2 if failed == quota_failures else 1)
 
 
 if __name__ == "__main__":
