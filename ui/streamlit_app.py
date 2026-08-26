@@ -6,6 +6,13 @@ deliberately thin — this is a demo surface for the Loom video, not a second
 place to put business logic.
 """
 import json
+import sys
+from pathlib import Path
+
+# streamlit run only puts this script's own directory on sys.path, not the
+# repo root, so the `app` package isn't importable regardless of cwd unless
+# we add it explicitly here.
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
 import streamlit as st
 
