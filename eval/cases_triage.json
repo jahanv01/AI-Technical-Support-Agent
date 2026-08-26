@@ -1,0 +1,93 @@
+[
+  {
+    "id": "triage_case_01_org_wide_error",
+    "source_ticket_id": "TKT-10050",
+    "adversarial": false,
+    "input": {
+      "subject": "Error when accessing Error Handling in WorkflowEngine",
+      "body": "Hello,\n\nWe're seeing a consistent error when trying to access the Error Handling module in WorkflowEngine. The error appears for all users in our organisation.\n\nError: 403 Forbidden: insufficient_scope\n\nSteps to reproduce:\n1. Navigate to Error Handling\n2. Attempt to filter by date\n3. Error appears\n\nThis started happening after the latest update. Can you help?"
+    },
+    "rule_checks": {
+      "issue_category_in": ["Bug"],
+      "urgency_tier_in": ["P1", "P2"],
+      "product_area_contains_any": ["WorkflowEngine", "Error Handling"],
+      "reasoning_contains_any": ["all users", "403", "update", "organisation", "organization"]
+    },
+    "judge_rubric": "The ticket describes a permissions error (403 Forbidden) affecting ALL users org-wide, introduced by a recent update, with no workaround mentioned. Score 1.0 if the reasoning correctly identifies this as a high-impact, no-workaround bug and prioritizes accordingly; score 0.0 if it treats this as low-impact/cosmetic or invents details not in the ticket."
+  },
+  {
+    "id": "triage_case_02_sso_outage",
+    "source_ticket_id": "TKT-10004",
+    "adversarial": false,
+    "input": {
+      "subject": "SSO configuration not working for new users – CloudSync",
+      "body": "We set up SSO for CloudSync last month and it works for existing users, but new joiners can't authenticate.\n\nError they see: DEPENDENCY_UNAVAILABLE: downstream service unreachable\n\nOur IDP: Salesforce\nPlan: Business\n\nPlease help – we have 308 people blocked from accessing the platform."
+    },
+    "rule_checks": {
+      "urgency_tier_in": ["P1"],
+      "issue_category_in": ["Bug", "Integration"],
+      "reasoning_contains_any": ["308", "blocked", "SSO", "authenticat"]
+    },
+    "judge_rubric": "308 users are completely blocked from platform access due to an SSO/authentication failure — this is a business-critical access outage. Score 1.0 if urgency reasoning explicitly weighs the scale of the block (308 users); score 0.0 if the reasoning ignores user impact or downgrades severity without justification."
+  },
+  {
+    "id": "triage_case_03_feature_request_not_urgent",
+    "source_ticket_id": "TKT-10000",
+    "adversarial": false,
+    "input": {
+      "subject": "Request: bulk archive entries in DataBridge Pro Data Ingestion",
+      "body": "Currently DataBridge Pro only allows individual archive entries in the Data Ingestion module. As our usage has scaled to 116 users we urgently need bulk operations.\n\nExpected behaviour: select multiple items, apply archive entries to all.\nCurrent workaround: manual one-by-one – not scalable."
+    },
+    "rule_checks": {
+      "issue_category_in": ["Feature Request"],
+      "urgency_tier_in": ["P3", "P4"],
+      "reasoning_contains_any": ["workaround", "manual", "bulk"]
+    },
+    "judge_rubric": "This is a feature request with an existing (if tedious) manual workaround — nothing is broken. Score 1.0 if classified as Feature Request with a non-critical urgency tier; score 0.0 if misclassified as a Bug or assigned P1/P2 despite the working workaround."
+  },
+  {
+    "id": "triage_case_04_performance_time_pressure",
+    "source_ticket_id": "TKT-10289",
+    "adversarial": false,
+    "input": {
+      "subject": "Dashboard loading times unacceptable – CloudSync",
+      "body": "Our File Sync dashboard in CloudSync is now taking over 31 seconds to load. This was not an issue 2 weeks ago. We have a board presentation on Tuesday and need this resolved.\n\nCustomer ID: ACC-2109\nPriority: High"
+    },
+    "rule_checks": {
+      "issue_category_in": ["Performance"],
+      "urgency_tier_in": ["P2", "P3"],
+      "reasoning_contains_any": ["31 second", "load", "slow", "performance"]
+    },
+    "judge_rubric": "A dashboard regressed from fast to 31s load time, with a business deadline (board presentation Tuesday) cited as context. Score 1.0 if reasoning identifies this as a performance regression and weighs the time pressure appropriately without over-escalating to P1; score 0.0 otherwise."
+  },
+  {
+    "id": "triage_case_05_how_to_new_customer",
+    "source_ticket_id": "TKT-10475",
+    "adversarial": false,
+    "input": {
+      "subject": "Best practice for Integrations setup – CloudSync",
+      "body": "Hello,\n\nWe're a new customer and just starting our CloudSync rollout. Could you point us to best practices for Integrations configuration?\n\nOur setup: 475 users, Staging environment, integrated with Jira.\n\nThanks"
+    },
+    "rule_checks": {
+      "issue_category_in": ["How-To", "Onboarding"],
+      "urgency_tier_in": ["P4"],
+      "needs_human_review": false
+    },
+    "judge_rubric": "This is a guidance request from a new customer in a staging environment — nothing is broken or blocking. Score 1.0 if classified as low-urgency guidance; score 0.0 if treated as a bug or assigned elevated urgency."
+  },
+  {
+    "id": "triage_case_06_adversarial_vague_ticket",
+    "source_ticket_id": null,
+    "adversarial": true,
+    "input": {
+      "subject": "issue",
+      "body": "It's not working again. Please help."
+    },
+    "rule_checks": {
+      "needs_human_review": true,
+      "matched_kb_doc_is_null": true,
+      "max_confidence": 0.5
+    },
+    "judge_rubric": "The ticket gives no product, error message, or reproduction detail — it is genuinely unclassifiable with confidence. Score 1.0 if the system honestly flags low confidence / needs_human_review rather than inventing a specific product_area, category, or urgency; score 0.0 if it fabricates specific details not present in the input."
+  }
+]
