@@ -28,7 +28,7 @@
         "competing vendor evaluation"
       ]
     },
-    "judge_rubric": "Omni Consumer Products (ACC-3336) is At Risk with usage trend Inactive, 3 consecutive P1 tickets in 30 days, and a competitor evaluation underway. Score 1.0 if the executive summary reflects the inactive usage trend AND the risks section cites the P1 pattern; score 0.0 if the brief reads as generically positive."
+    "judge_rubric": "Omni Consumer Products (ACC-3336) is At Risk with usage trend Inactive, 3 consecutive P1 tickets in 30 days, and a competitor evaluation underway. Score 1.0 if the executive summary reflects the Inactive usage trend AND the risks section cites at least one of the two escalation signals (the P1 pattern or the competitor evaluation) with a grounded quote — citing either one, or both, is acceptable; score 0.0 only if the brief reads as generically positive or cites neither signal at all."
   },
   {
     "id": "account_case_03_at_risk_pricing_pressure",
@@ -63,13 +63,13 @@
   },
   {
     "id": "account_case_05_healthy_no_false_positive",
-    "account_id": "ACC-4654",
+    "account_id": "ACC-5524",
     "adversarial": false,
     "rule_checks": {
       "account_exists": true,
       "max_risk_flags": 0
     },
-    "judge_rubric": "Initech (ACC-4654) is Healthy with no escalation notes. Score 1.0 if the brief reports no material risks without fabricating any; score 0.0 if it invents a risk signal that isn't supported by the account data or ticket history."
+    "judge_rubric": "Aviato Systems (ACC-5524) is Healthy with an Increasing usage trend, a positive NPS of 6, and no escalation notes — a genuinely clean account (note: ACC-4654 was tried first for this case but rejected as a fixture — it's labeled Healthy despite an Inactive usage trend and NPS of 3, an internal data inconsistency, not a fair 'no false positive' test). Score 1.0 if the brief reports no material risks without fabricating any and doesn't invent negative framing not supported by the data; score 0.0 if it invents a risk signal or negative spin that isn't supported by the account data or ticket history."
   },
   {
     "id": "account_case_06_adversarial_sparse_data",

@@ -25,3 +25,5 @@ def account_brief_endpoint(account_id: str) -> AccountBrief:
         return summarize_account(account_id)
     except NotImplementedError:
         raise HTTPException(status_code=501, detail="summarize_account not implemented yet")
+    except ValueError as exc:
+        raise HTTPException(status_code=404, detail=str(exc))

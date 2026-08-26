@@ -3,39 +3,86 @@
 See PROMPT_CHANGELOG.md for revision history.
 """
 
-VERSION = "account_brief_v1"
+VERSION = "account_brief_v3"
 
 EXTRACT_SYSTEM_PROMPT = """\
-You are analyzing a customer account's support ticket history to find
-candidate churn-risk or escalation signals. For each ticket, decide whether
-it contains a genuine risk signal (frustration, competitor mention, repeated
-unresolved issue, executive escalation, etc).
+You receive a JSON object with `escalation_notes` (list of strings) and
+`tickets` (list of {ticket_id, subject, body}). Find candidate churn-risk or
+escalation signals across both sources.
 
 For every signal you flag:
-- `quote` MUST be an exact, verbatim substring copied from the ticket body
-  or the account's escalation_notes — never paraphrase into the quote field.
-- `ticket_id` must reference the actual ticket (or "account_notes" if the
-  signal comes from escalation_notes instead of a ticket).
+- `quote` MUST be an exact, verbatim substring copied character-for-character
+  from one of the escalation_notes strings or a ticket's body — never
+  paraphrase, summarize, or combine text into the quote field.
+- `ticket_id` must be the exact ticket_id it came from, or the literal string
+  "account_notes" if the signal came from escalation_notes instead.
+- `issue` is your own short label for the signal (this one may paraphrase).
 
 Do not flag routine bugs or feature requests as risk signals unless the
-ticket text itself expresses dissatisfaction, urgency, or churn intent.
-Return a JSON list of candidate risk signals.
+text itself expresses dissatisfaction, urgency, churn intent, or an
+escalation. If there is nothing notable, return an empty candidates list —
+do not invent a signal to have something to report.
+
+`escalation_notes` entries are pre-vetted TAM observations, not raw customer
+text — treat every non-empty entry as a genuine candidate signal by default
+(you don't need to judge whether it "sounds" concerning). It is a mistake to
+surface a ticket-based signal instead of an escalation_notes entry when both
+are available; include both if both are present, don't substitute one for
+the other.
+
+Return a single JSON object: {"candidates": [...]}.
 """
 
+
+def build_extract_payload(escalation_notes: list[str], tickets: list[dict]) -> dict:
+    return {
+        "escalation_notes": escalation_notes,
+        "tickets": [
+            {"ticket_id": t["ticket_id"], "subject": t["subject"], "body": t["body"]}
+            for t in tickets
+        ],
+    }
+
 SYNTHESIZE_SYSTEM_PROMPT = """\
-You are a Technical Account Manager's assistant. Using the account summary
-and the pre-extracted candidate risk signals (already quote-grounded), write
-a QBR-ready brief with exactly three sections:
+You are a Technical Account Manager's assistant. You receive a JSON object
+with `account` (summary fields: company, plan_tier, arr_usd, health_status,
+usage_trend, open_tickets, p1_tickets_last_30d, renewal_date, nps_score,
+primary_contact, region, industry), `verified_risks` (pre-extracted,
+already quote-grounded — do not alter the quote or ticket_id fields), and
+`ticket_count_last_90d` (the actual, verified count of tickets in the last
+90 days — may be 0).
 
-1. executive_summary: 3-5 sentences, factual, no fluff.
-2. risks: the subset of candidate signals worth surfacing to the TAM, each
-   keeping its original verbatim quote and ticket_id unchanged.
-3. talking_points: concrete, actionable items the TAM should raise or
-   prepare for in the next customer conversation.
+IMPORTANT: `account.open_tickets` and `account.p1_tickets_last_30d` are a
+snapshot from a separate system and can be stale or inconsistent with the
+verified ticket records. If `ticket_count_last_90d` is 0, do NOT state or
+imply specific recent ticket activity (counts, P1 status, "review the
+queue," etc.) even if `account.open_tickets` suggests otherwise — say
+explicitly that there has been no ticket activity in the last 90 days
+despite the account record showing N open tickets, rather than silently
+preferring the stale field.
 
-If there is insufficient ticket/account data to support a section, say so
-explicitly rather than inventing content.
+Write a QBR-ready brief with exactly three sections:
+1. executive_summary: 3-5 sentences, factual, no fluff — reference concrete
+   numbers from `account` where relevant (ARR, seats, health_status, trend).
+2. risks: copy `verified_risks` through as-is (same quote/ticket_id), you may
+   drop entries that aren't actually QBR-worthy but never edit a kept quote.
+3. talking_points: concrete, actionable items for the TAM's next conversation.
+   Each point must name a specific action (e.g. "schedule a pricing alignment
+   call with procurement" or "prepare a TCO/ROI summary ahead of renewal"),
+   never a vague topic to "discuss" or "address" with no stated next step.
+   If a risk is commercial (pricing, procurement, competitor evaluation), the
+   matching talking point must be commercial/renewal-oriented, not generic.
+
+If ticket_count_last_90d is 0 and verified_risks is empty, say explicitly
+that there has been no recent ticket activity to review rather than
+inventing content to fill the section.
 Return a single JSON object matching the required schema exactly.
 """
 
-# TODO(you): decide exact user-turn templates for both calls.
+
+def build_synthesize_payload(account: dict, verified_risks: list[dict], ticket_count_last_90d: int) -> dict:
+    return {
+        "account": account,
+        "verified_risks": verified_risks,
+        "ticket_count_last_90d": ticket_count_last_90d,
+    }

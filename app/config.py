@@ -19,8 +19,8 @@ TICKETS_PATH = DATA_DIR / "tickets.json"
 ACCOUNTS_PATH = DATA_DIR / "accounts.json"
 
 GEMINI_API_KEY = os.environ.get("GEMINI_API_KEY", "")
-GEMINI_MODEL = os.environ.get("GEMINI_MODEL", "gemini-1.5-flash")
-GEMINI_JUDGE_MODEL = os.environ.get("GEMINI_JUDGE_MODEL", "gemini-1.5-flash")
+GEMINI_MODEL = os.environ.get("GEMINI_MODEL", "gemini-3.5-flash-lite")
+GEMINI_JUDGE_MODEL = os.environ.get("GEMINI_JUDGE_MODEL", "gemini-3.5-flash-lite")
 GEMINI_TEMPERATURE = float(os.environ.get("GEMINI_TEMPERATURE", "0"))
 
 # Account-brief "last 90 days" is computed relative to this fixed date rather
@@ -28,10 +28,12 @@ GEMINI_TEMPERATURE = float(os.environ.get("GEMINI_TEMPERATURE", "0"))
 # the max created_at seen in tickets.json at load time — see account_brief.py.
 ACCOUNT_BRIEF_LOOKBACK_DAYS = 90
 
-# KB retrieval: only surface a matched doc if the top BM25 score clears this
-# threshold, to avoid hallucinated/low-confidence KB matches (tune once you
-# see real score distributions on the actual dataset).
-KB_MATCH_SCORE_THRESHOLD = 0.0  # TODO: tune once retrieval.py is implemented
+# KB retrieval: with only 85 chunks and no stopword filtering, BM25 alone
+# isn't precise enough to be the sole gate (verified empirically — see
+# retrieval.py's docstring). This threshold just filters pure noise; the
+# triage prompt itself makes the final relevance call before citing
+# matched_kb_doc (two-stage: BM25 for recall, LLM for precision).
+KB_MATCH_SCORE_THRESHOLD = 5.0
 
 # Triage confidence: below this, set needs_human_review=True instead of
 # guessing a tier.

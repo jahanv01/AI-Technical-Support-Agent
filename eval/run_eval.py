@@ -12,6 +12,7 @@ one and watch cases flip to passing as you build the real logic.
 from __future__ import annotations
 
 import json
+from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 from typing import Any
 
@@ -24,6 +25,8 @@ from eval.rules import check_account_rules, check_triage_rules
 
 CASES_DIR = Path(__file__).parent
 QUALITY_PASS_THRESHOLD = 0.6  # combined rule+judge score needed to "pass"
+MAX_WORKERS = 4  # modest concurrency for independent, I/O-bound eval cases -
+                  # keeps runtime reasonable without hammering free-tier rate limits
 
 
 def _load_dataset() -> tuple[dict[str, TicketRecord], dict[str, AccountRecord]]:
@@ -41,69 +44,62 @@ def _combine_score(rule_results: list, judge_score: float | None) -> float:
     return 0.5 * rule_score + 0.5 * judge_score
 
 
-def run_triage_cases() -> list[dict[str, Any]]:
-    cases = json.loads((CASES_DIR / "cases_triage.json").read_text(encoding="utf-8"))
-    results = []
-    for case in cases:
-        entry: dict[str, Any] = {"id": case["id"], "task": "triage", "adversarial": case["adversarial"]}
-        try:
-            output = classify_ticket(TicketIn(**case["input"]))
-            rule_results = check_triage_rules(output, case["rule_checks"])
-            judge = None
-            try:
-                judge = judge_output(rubric=case["judge_rubric"], produced_output=output.model_dump())
-            except NotImplementedError:
-                pass
-            judge_score = judge["score"] if judge else None
-            score = _combine_score(rule_results, judge_score)
-            entry.update({
-                "output": output.model_dump(),
-                "rule_results": [r.__dict__ for r in rule_results],
-                "judge": judge,
-                "quality_score": round(score, 3),
-                "passed": score >= QUALITY_PASS_THRESHOLD,
-                "error": None,
-            })
-        except NotImplementedError:
-            entry.update({"quality_score": 0.0, "passed": False, "error": "classify_ticket not implemented yet"})
-        except Exception as exc:  # noqa: BLE001 - surfaced in report, not swallowed
-            entry.update({"quality_score": 0.0, "passed": False, "error": f"{type(exc).__name__}: {exc}"})
-        results.append(entry)
-    return results
+def _run_triage_case(case: dict) -> dict[str, Any]:
+    entry: dict[str, Any] = {"id": case["id"], "task": "triage", "adversarial": case["adversarial"]}
+    try:
+        output = classify_ticket(TicketIn(**case["input"]))
+        rule_results = check_triage_rules(output, case["rule_checks"])
+        judge = judge_output(rubric=case["judge_rubric"], produced_output=output.model_dump())
+        score = _combine_score(rule_results, judge["score"])
+        entry.update({
+            "output": output.model_dump(),
+            "rule_results": [r.__dict__ for r in rule_results],
+            "judge": judge,
+            "quality_score": round(score, 3),
+            "passed": score >= QUALITY_PASS_THRESHOLD,
+            "error": None,
+        })
+    except NotImplementedError:
+        entry.update({"quality_score": 0.0, "passed": False, "error": "classify_ticket not implemented yet"})
+    except Exception as exc:  # noqa: BLE001 - surfaced in report, not swallowed
+        entry.update({"quality_score": 0.0, "passed": False, "error": f"{type(exc).__name__}: {exc}"})
+    return entry
 
 
-def run_account_cases(tickets_by_id: dict[str, TicketRecord], accounts_by_id: dict[str, AccountRecord]) -> list[dict[str, Any]]:
-    cases = json.loads((CASES_DIR / "cases_account.json").read_text(encoding="utf-8"))
-    results = []
-    for case in cases:
-        entry: dict[str, Any] = {"id": case["id"], "task": "account_brief", "adversarial": case["adversarial"]}
-        try:
-            brief = summarize_account(case["account_id"])
-            account = accounts_by_id.get(case["account_id"])
-            rule_results = check_account_rules(
-                brief, case["rule_checks"], account=account, tickets_by_id=tickets_by_id,
-            )
-            judge = None
-            try:
-                judge = judge_output(rubric=case["judge_rubric"], produced_output=brief.model_dump())
-            except NotImplementedError:
-                pass
-            judge_score = judge["score"] if judge else None
-            score = _combine_score(rule_results, judge_score)
-            entry.update({
-                "output": brief.model_dump(),
-                "rule_results": [r.__dict__ for r in rule_results],
-                "judge": judge,
-                "quality_score": round(score, 3),
-                "passed": score >= QUALITY_PASS_THRESHOLD,
-                "error": None,
-            })
-        except NotImplementedError:
-            entry.update({"quality_score": 0.0, "passed": False, "error": "summarize_account not implemented yet"})
-        except Exception as exc:  # noqa: BLE001
-            entry.update({"quality_score": 0.0, "passed": False, "error": f"{type(exc).__name__}: {exc}"})
-        results.append(entry)
-    return results
+def _run_account_case(case: dict, tickets_by_id: dict[str, TicketRecord], accounts_by_id: dict[str, AccountRecord]) -> dict[str, Any]:
+    entry: dict[str, Any] = {"id": case["id"], "task": "account_brief", "adversarial": case["adversarial"]}
+    try:
+        brief = summarize_account(case["account_id"])
+        account = accounts_by_id.get(case["account_id"])
+        rule_results = check_account_rules(
+            brief, case["rule_checks"], account=account, tickets_by_id=tickets_by_id,
+        )
+        judge = judge_output(rubric=case["judge_rubric"], produced_output=brief.model_dump())
+        score = _combine_score(rule_results, judge["score"])
+        entry.update({
+            "output": brief.model_dump(),
+            "rule_results": [r.__dict__ for r in rule_results],
+            "judge": judge,
+            "quality_score": round(score, 3),
+            "passed": score >= QUALITY_PASS_THRESHOLD,
+            "error": None,
+        })
+    except NotImplementedError:
+        entry.update({"quality_score": 0.0, "passed": False, "error": "summarize_account not implemented yet"})
+    except Exception as exc:  # noqa: BLE001
+        entry.update({"quality_score": 0.0, "passed": False, "error": f"{type(exc).__name__}: {exc}"})
+    return entry
+
+
+def run_all_cases(tickets_by_id: dict[str, TicketRecord], accounts_by_id: dict[str, AccountRecord]) -> list[dict[str, Any]]:
+    triage_cases = json.loads((CASES_DIR / "cases_triage.json").read_text(encoding="utf-8"))
+    account_cases = json.loads((CASES_DIR / "cases_account.json").read_text(encoding="utf-8"))
+
+    jobs: list = []
+    with ThreadPoolExecutor(max_workers=MAX_WORKERS) as pool:
+        jobs += [pool.submit(_run_triage_case, c) for c in triage_cases]
+        jobs += [pool.submit(_run_account_case, c, tickets_by_id, accounts_by_id) for c in account_cases]
+        return [job.result() for job in jobs]
 
 
 def render_markdown(all_results: list[dict[str, Any]]) -> str:
@@ -121,9 +117,7 @@ def render_markdown(all_results: list[dict[str, Any]]) -> str:
 
 def main() -> None:
     tickets_by_id, accounts_by_id = _load_dataset()
-    triage_results = run_triage_cases()
-    account_results = run_account_cases(tickets_by_id, accounts_by_id)
-    all_results = triage_results + account_results
+    all_results = run_all_cases(tickets_by_id, accounts_by_id)
 
     report_json_path = ROOT_DIR / "eval_report.json"
     report_md_path = ROOT_DIR / "eval_report.md"
