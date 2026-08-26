@@ -1,0 +1,85 @@
+[
+  {
+    "id": "account_case_01_churning_clear_signals",
+    "account_id": "ACC-2944",
+    "adversarial": false,
+    "rule_checks": {
+      "account_exists": true,
+      "min_risk_flags": 1,
+      "quotes_must_be_verbatim": true,
+      "expected_quote_substrings_any": [
+        "Champion left the company",
+        "frustration with response times",
+        "competing vendor evaluation"
+      ]
+    },
+    "judge_rubric": "Pinnacle Systems (ACC-2944) is labeled Churning with three explicit escalation notes (champion departure, response-time frustration, active competitor evaluation). Score 1.0 if the brief surfaces these as risks with verbatim quotes and the talking points address them concretely; score 0.0 if risks are vague, unquoted, or the churn signals are missed entirely."
+  },
+  {
+    "id": "account_case_02_at_risk_p1_pattern",
+    "account_id": "ACC-3336",
+    "adversarial": false,
+    "rule_checks": {
+      "account_exists": true,
+      "min_risk_flags": 1,
+      "quotes_must_be_verbatim": true,
+      "expected_quote_substrings_any": [
+        "3 consecutive P1 tickets",
+        "competing vendor evaluation"
+      ]
+    },
+    "judge_rubric": "Omni Consumer Products (ACC-3336) is At Risk with usage trend Inactive, 3 consecutive P1 tickets in 30 days, and a competitor evaluation underway. Score 1.0 if the executive summary reflects the inactive usage trend AND the risks section cites the P1 pattern; score 0.0 if the brief reads as generically positive."
+  },
+  {
+    "id": "account_case_03_at_risk_pricing_pressure",
+    "account_id": "ACC-8113",
+    "adversarial": false,
+    "rule_checks": {
+      "account_exists": true,
+      "min_risk_flags": 1,
+      "quotes_must_be_verbatim": true,
+      "expected_quote_substrings_any": [
+        "pricing review",
+        "Negative sentiment",
+        "competing vendor evaluation"
+      ]
+    },
+    "judge_rubric": "Vertex Solutions (ACC-8113) has a procurement-initiated pricing review alongside negative sentiment and competitor evaluation — a commercial risk signal, not just a product one. Score 1.0 if talking points include a concrete pricing/renewal-oriented action; score 0.0 if the pricing signal is ignored."
+  },
+  {
+    "id": "account_case_04_at_risk_integration_concern",
+    "account_id": "ACC-9733",
+    "adversarial": false,
+    "rule_checks": {
+      "account_exists": true,
+      "min_risk_flags": 1,
+      "quotes_must_be_verbatim": true,
+      "expected_quote_substrings_any": [
+        "competing vendor evaluation",
+        "integration reliability concerns"
+      ]
+    },
+    "judge_rubric": "Pied Piper Inc (ACC-9733) has an IT-flagged integration reliability concern plus a competitor evaluation. Score 1.0 if the brief distinguishes the technical concern (integration reliability) from the commercial one (competitor eval) in separate, specific talking points; score 0.0 if merged into one vague statement."
+  },
+  {
+    "id": "account_case_05_healthy_no_false_positive",
+    "account_id": "ACC-4654",
+    "adversarial": false,
+    "rule_checks": {
+      "account_exists": true,
+      "max_risk_flags": 0
+    },
+    "judge_rubric": "Initech (ACC-4654) is Healthy with no escalation notes. Score 1.0 if the brief reports no material risks without fabricating any; score 0.0 if it invents a risk signal that isn't supported by the account data or ticket history."
+  },
+  {
+    "id": "account_case_06_adversarial_sparse_data",
+    "account_id": "ACC-3033",
+    "adversarial": true,
+    "rule_checks": {
+      "account_exists": true,
+      "max_risk_flags": 0,
+      "executive_summary_not_empty": true
+    },
+    "judge_rubric": "Polaris Group (ACC-3033) is Healthy with empty escalation_notes AND zero tickets in the actual last-90-days window in tickets.json (note: the account record's own open_tickets=11 field is stale/inconsistent with the filtered ticket data — this is intentional data-gap testing). Score 1.0 if the brief explicitly notes the lack of recent ticket activity rather than silently fabricating detail or blindly trusting the account's open_tickets field; score 0.0 if it invents specific ticket-based content that doesn't exist in the last-90-day window."
+  }
+]
