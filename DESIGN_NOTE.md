@@ -1,49 +1,30 @@
 # Design Note
 
-_Draft skeleton — expand each bullet into prose in your own words before submitting (~600 words total, roughly one short paragraph per section). These points are grounded in decisions actually made in this codebase, not generic answers._
-
 ## Failure modes
 
-Top 3 candidates, each with how this design detects/mitigates it:
+**1. Hallucinated KB citation.** With only ~85 KB chunks and no stopword filtering, BM25 retrieval alone isn't precise enough to trust as the sole gate — a long chunk with several loosely-overlapping generic words can occasionally outrank a short, exactly-relevant one. Mitigated with a two-stage design: BM25 surfaces up to 2 candidates (recall), the triage prompt is given only those candidates' exact breadcrumb headings as the *allowed* values for `matched_kb_doc`, and `app/triage.py` re-checks in code afterward that whatever the model returned is actually one of the candidates offered — nulling it out otherwise even if the model ignores the prompt instruction. Detected in eval via the adversarial case (`triage_case_06`) asserting `matched_kb_doc_is_null` on an unclassifiable ticket.
 
-1. **Hallucinated KB citation** — the model claims a `matched_kb_doc` that isn't actually relevant. Mitigated by gating `matched_kb_doc` on the BM25 retrieval score clearing `KB_MATCH_SCORE_THRESHOLD` (`app/config.py`) rather than letting the model name a doc freely — detection is a rule-based eval check (`matched_kb_doc_is_null` in `eval/rules.py`).
-2. **Non-deterministic Task 2 output despite `temperature=0`** — Gemini's temperature=0 narrows but doesn't guarantee bit-identical output. Mitigated by the response cache in `app/llm_client.py`, keyed on `(prompt_version, canonicalized input)` — same account/ticket set always returns the exact stored response. Detect drift by diffing two runs on the same account_id.
-3. **Silent schema drift** — malformed/incomplete JSON from the model breaks downstream consumers silently. Mitigated by forcing `response_schema` at the API call and validating through Pydantic (`app/schemas.py`), which raises loudly instead of passing bad data through — caught immediately by `eval/run_eval.py`'s exception handling per case.
+**2. Non-deterministic Task 2 output.** `temperature=0` narrows but doesn't guarantee bit-identical output across runs. Mitigated with a response cache in `app/llm_client.py` keyed on `(prompt_version, canonicalized input)` — the same account/ticket set always replays the exact stored response rather than calling the API again. Verifiable by diffing two runs on the same `account_id`.
 
-(Optional 4th, if you built the confidence/fallback path: silently-wrong classification on ambiguous tickets — mitigated by `needs_human_review` gating in `app/triage.py`, exercised by the adversarial eval case `triage_case_06`.)
+**3. Rate-limit/quota exhaustion causing silent stalls.** This wasn't hypothetical — it happened during this build. The free-tier Gemini API enforces 4-5 requests/minute per model, and running eval cases concurrently without any client-side throttling caused a cascade of 429s; separately, an unconfigured HTTP client with no request timeout let one stalled call hang for over an hour with no error surfaced at all. Both are now handled in `app/llm_client.py`: a token-bucket rate limiter shared across threads keeps calls under the observed cap, a 30-second request timeout guarantees a call fails fast instead of hanging, and 429 responses are retried using the server's own suggested `retryDelay` rather than a blind backoff. This is exactly the kind of failure that's invisible in a single-request demo and only shows up under any real concurrent load — worth treating as a first-class case, not an edge case.
 
 ## Latency vs quality
 
-Concrete trade-off actually made: Task 2 uses a **two-call prompt chain**
-(extract candidate risk signals → synthesize the 3-section brief) instead of
-one mega-prompt. Slower (2 round-trips) and more expensive, but each step is
-independently gradable and the quote-grounding check can run between the two
-calls rather than only after the fact.
+Task 2 uses a **two-call prompt chain** (extract candidate risk signals from tickets/escalation notes → synthesize the 3-section brief) instead of one mega-prompt. Slower — two round-trips instead of one — but each step is independently checkable: quote-grounding is verified in code between the two calls, so an ungrounded candidate never reaches the final brief, rather than hoping the model self-polices in a single pass.
 
-What you'd change under a hard latency constraint: collapse to a single call
-with the schema asking for both extraction and synthesis at once; drop the
-LLM-judge from the online path entirely (keep it for offline/CI regression
-only, where latency doesn't matter); rely on the rule-based checks and the
-response cache for online quality/speed.
+Under a hard latency constraint, the first cut would be collapsing this to one call with the schema asking for both extraction and synthesis at once, accepting weaker quote-grounding guarantees. The LLM-judge in the eval harness would also move fully offline (CI/regression only) rather than any part of a live path — it's not on the product's critical path today, but it's the first thing to explicitly exclude if latency became the constraint.
 
 ## Data sensitivity
 
-Tickets/accounts may contain PII (contact names, emails embedded in ticket
-bodies, etc). [Note: state here whether you implemented the PII-redaction
-pass from the plan — a regex-based scrub of emails/phone numbers before any
-text is sent to the Gemini API — or, if not, that this is the identified gap
-and what you'd add first.] Also note: this is a synthetic dataset, so this
-section is a design demonstration of the *pattern* (redact-before-send,
-never log raw PII, cache keys are hashed not plaintext) rather than a live
-compliance claim.
+Ticket and account text may contain PII (emails, phone numbers embedded in ticket bodies). `app/pii.py` applies a regex-based redaction pass (emails, phone numbers) to `subject`/`body`/`escalation_notes` text before it enters `user_payload` in both `app/triage.py` and `app/account_brief.py` — the only points where raw customer text leaves the process. Redaction happens *before* caching too, since `app/llm_client.py` persists API responses to disk in `.cache/`, so no raw PII is retained there either. Quote-grounding checks (`eval/rules.py`, and the same guard inline in `account_brief.py`) still compare against the *original* unredacted ticket body — safe in practice, since a genuine churn-signal quote is vanishingly unlikely to itself be someone's email or phone number.
+
+This is intentionally narrow (two regex patterns, not a general PII classifier) and doesn't cover names or free-text identifying details — a fuller implementation would need a proper NER-based redaction step. Since this dataset is fully synthetic, no real PII is actually at risk today; the pattern (redact-before-send, redact-before-cache) is what would matter immediately with real customer data.
 
 ## Scaling 10×
 
-At 10× ticket volume (5,000 tickets), the first thing to break is **BM25
-index rebuild time** in `app/retrieval.py` if it's rebuilt from scratch per
-request rather than built once and reused — fix: build once at startup,
-persist/incrementally update rather than rebuild per call. Second: the
-**LLM-judge in the eval harness** scales linearly with case count and API
-cost/latency — fine at today's 12 cases, not fine if the suite grows with
-the data; fix: sample a subset for judge-scoring on every commit, run the
-full judge suite only on a schedule or before release.
+Two things break first, in order:
+
+1. **The free-tier rate limit, immediately** — not a 10× problem, a *today* problem. At 4-5 requests/minute, even this project's own 12-case eval suite takes several minutes; 10× ticket volume with live (uncached) triage calls would queue almost entirely behind the rate limiter. This is the actual first bottleneck, ahead of anything architectural, and the fix is unglamorous: a paid tier with a real RPM budget, not a code change.
+2. **BM25 index rebuild time**, if `KBIndex.build()` were ever called per-request instead of once at startup (it currently isn't — `app/triage.py` builds it once as a module-level singleton). At 10× KB size this would still be fast in-memory, but it's the next thing to watch if the KB corpus grows much larger than a few hundred chunks.
+
+The eval harness's LLM-judge calls also scale linearly with test case count and would need sampling (grade a subset per commit, full suite on a schedule) rather than every case on every push once the suite grows past a few dozen cases.

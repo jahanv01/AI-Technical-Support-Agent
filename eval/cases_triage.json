@@ -13,7 +13,7 @@
       "product_area_contains_any": ["WorkflowEngine", "Error Handling"],
       "reasoning_contains_any": ["all users", "403", "update", "organisation", "organization"]
     },
-    "judge_rubric": "The ticket describes a permissions error (403 Forbidden) affecting ALL users org-wide, introduced by a recent update, with no workaround mentioned. Score 1.0 if the reasoning correctly identifies this as a high-impact, no-workaround bug and prioritizes accordingly; score 0.0 if it treats this as low-impact/cosmetic or invents details not in the ticket."
+    "judge_rubric": "The ticket describes a permissions error (403 Forbidden) affecting ALL users org-wide, introduced by a recent update, with no workaround mentioned. Either P1 or P2 is a defensible urgency call here (org-wide but not a full outage) — do not penalize for picking one over the other. Score 1.0 if the reasoning correctly identifies this as a high-impact, no-workaround bug grounded in the ticket's specific details (org-wide scope, the 403 error, the recent update); score 0.0 only if it treats this as low-impact/cosmetic or invents details not in the ticket."
   },
   {
     "id": "triage_case_02_sso_outage",

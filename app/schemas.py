@@ -76,9 +76,15 @@ class TicketIn(BaseModel):
     account_id: Optional[str] = None
 
 
+IssueCategory = Literal[
+    "Bug", "Feature Request", "How-To", "Performance",
+    "Billing", "Integration", "Onboarding", "Data Loss",
+]
+
+
 class TriageOutput(BaseModel):
     product_area: str
-    issue_category: str
+    issue_category: IssueCategory
     urgency_tier: Literal["P1", "P2", "P3", "P4"]
     reasoning: str
     matched_kb_doc: Optional[str] = None
@@ -95,6 +101,12 @@ class RiskFlag(BaseModel):
     issue: str
     quote: str  # must be a verbatim substring of the source ticket body
     ticket_id: str
+
+
+class CandidateRisks(BaseModel):
+    """Intermediate output of the extract call in the account-brief chain."""
+
+    candidates: list[RiskFlag] = Field(default_factory=list)
 
 
 class AccountBrief(BaseModel):

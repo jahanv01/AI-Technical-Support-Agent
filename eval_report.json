@@ -3,96 +3,564 @@
     "id": "triage_case_01_org_wide_error",
     "task": "triage",
     "adversarial": false,
-    "quality_score": 0.0,
-    "passed": false,
-    "error": "classify_ticket not implemented yet"
+    "output": {
+      "product_area": "WorkflowEngine",
+      "issue_category": "Bug",
+      "urgency_tier": "P2",
+      "reasoning": "Product area is WorkflowEngine based on the explicit mention in the subject and body. The issue category is Bug because the user is reporting a 403 Forbidden error when performing standard steps after the latest update. Urgency tier is P2 because it impacts all users in the organisation without a complete system outage, signaled by 'The error appears for all users in our organisation' and 'This started happening after the latest update'. Neither KB excerpt directly solves a 403 insufficient_scope error for WorkflowEngine, so matched_kb_doc is null.",
+      "matched_kb_doc": null,
+      "recommended_team": "WorkflowEngine Support",
+      "draft_response": "Hello, thank you for reaching out to support. We see you are encountering a 403 Forbidden: insufficient_scope error when accessing the Error Handling module in WorkflowEngine for all users in your organization following the recent update. Our engineering team is investigating this permission scope issue. We will update you as soon as we have more information.",
+      "needs_human_review": false,
+      "confidence": 0.9
+    },
+    "rule_results": [
+      {
+        "name": "issue_category_in",
+        "passed": true,
+        "detail": "got 'Bug', expected one of ['Bug']"
+      },
+      {
+        "name": "urgency_tier_in",
+        "passed": true,
+        "detail": "got 'P2', expected one of ['P1', 'P2']"
+      },
+      {
+        "name": "product_area_contains_any",
+        "passed": true,
+        "detail": "product_area='WorkflowEngine' vs any of ['WorkflowEngine', 'Error Handling']"
+      },
+      {
+        "name": "reasoning_contains_any",
+        "passed": true,
+        "detail": "reasoning did mention any of ['all users', '403', 'update', 'organisation', 'organization']"
+      }
+    ],
+    "judge": {
+      "score": 1.0,
+      "explanation": "The reasoning correctly identifies the issue as a high-impact bug caused by a recent update that affects all users org-wide, referencing the specific 403 error and meeting all criteria for a 1.0 score."
+    },
+    "quality_score": 1.0,
+    "passed": true,
+    "error": null
   },
   {
     "id": "triage_case_02_sso_outage",
     "task": "triage",
     "adversarial": false,
-    "quality_score": 0.0,
-    "passed": false,
-    "error": "classify_ticket not implemented yet"
+    "output": {
+      "product_area": "CloudSync SSO",
+      "issue_category": "Bug",
+      "urgency_tier": "P1",
+      "reasoning": "The product_area is grounded in the explicit mention of 'SSO' and 'CloudSync' in the subject and body. The issue_category is a Bug because new users are failing with a system error (DEPENDENCY_UNAVAILABLE). The urgency_tier is P1, justified by the specific signal phrase 'we have 308 people blocked from accessing the platform', indicating business-critical disruption.",
+      "matched_kb_doc": "Troubleshooting: Authentication & SSO > New Users Cannot Authenticate via SSO",
+      "recommended_team": "Identity & Access Management Support",
+      "draft_response": "Hello, thank you for reaching out to support. Since 308 users are currently blocked, we understand the urgency of this issue. Based on the error and symptoms described, please review the following steps from our knowledge base: 1. Log in to the product as an admin. 2. Navigate to Settings -> SSO -> Group Mapping. 3. Verify the new user's primary IDP group appears in the list with a role assigned. If the group is missing, add it with the appropriate role and ask the user to retry. Please let us know if the issue persists after verifying the group mapping.",
+      "needs_human_review": false,
+      "confidence": 0.95
+    },
+    "rule_results": [
+      {
+        "name": "issue_category_in",
+        "passed": true,
+        "detail": "got 'Bug', expected one of ['Bug', 'Integration']"
+      },
+      {
+        "name": "urgency_tier_in",
+        "passed": true,
+        "detail": "got 'P1', expected one of ['P1']"
+      },
+      {
+        "name": "reasoning_contains_any",
+        "passed": true,
+        "detail": "reasoning did mention any of ['308', 'blocked', 'SSO', 'authenticat']"
+      }
+    ],
+    "judge": {
+      "score": 1.0,
+      "explanation": "The produced output explicitly weights the scale of the block by mentioning the 308 blocked users as justification for the P1 urgency tier."
+    },
+    "quality_score": 1.0,
+    "passed": true,
+    "error": null
   },
   {
     "id": "triage_case_03_feature_request_not_urgent",
     "task": "triage",
     "adversarial": false,
-    "quality_score": 0.0,
-    "passed": false,
-    "error": "classify_ticket not implemented yet"
+    "output": {
+      "product_area": "DataBridge Pro Data Ingestion",
+      "issue_category": "Feature Request",
+      "urgency_tier": "P3",
+      "reasoning": "The customer explicitly states 'Request: bulk archive entries' and asks for new functionality where DataBridge Pro allows selecting multiple items to apply archive entries, citing manual one-by-one as a workaround. The signal phrase for urgency is 'As our usage has scaled to 116 users we urgently need bulk operations', indicating moderate impact with a current workaround, placing it at P3.",
+      "matched_kb_doc": null,
+      "recommended_team": "Product Management",
+      "draft_response": "Hello, thank you for reaching out. We have logged your request for bulk archive capabilities in the DataBridge Pro Data Ingestion module. Our product team is tracking user demand for this feature as usage scales. We will keep you updated on any progress regarding bulk operations.",
+      "needs_human_review": false,
+      "confidence": 0.95
+    },
+    "rule_results": [
+      {
+        "name": "issue_category_in",
+        "passed": true,
+        "detail": "got 'Feature Request', expected one of ['Feature Request']"
+      },
+      {
+        "name": "urgency_tier_in",
+        "passed": true,
+        "detail": "got 'P3', expected one of ['P3', 'P4']"
+      },
+      {
+        "name": "reasoning_contains_any",
+        "passed": true,
+        "detail": "reasoning did mention any of ['workaround', 'manual', 'bulk']"
+      }
+    ],
+    "judge": {
+      "score": 1.0,
+      "explanation": "The output correctly classifies the issue as a Feature Request under the issue_category field and assigns a non-critical urgency tier (P3) given that a manual workaround exists, fully satisfying the rubric requirements."
+    },
+    "quality_score": 1.0,
+    "passed": true,
+    "error": null
   },
   {
     "id": "triage_case_04_performance_time_pressure",
     "task": "triage",
     "adversarial": false,
-    "quality_score": 0.0,
-    "passed": false,
-    "error": "classify_ticket not implemented yet"
+    "output": {
+      "product_area": "File Sync dashboard",
+      "issue_category": "Performance",
+      "urgency_tier": "P2",
+      "reasoning": "The product area is grounded in the phrase 'File Sync dashboard in CloudSync'. The issue category is Performance because the ticket describes the dashboard 'taking over 31 seconds to load'. The urgency tier is P2 based on the signal phrase 'We have a board presentation on Tuesday and need this resolved', indicating major impact with a time-sensitive deadline, even though it is not a complete production outage. Neither of the available KB excerpts is relevant to dashboard performance, so matched_kb_doc is null.",
+      "matched_kb_doc": null,
+      "recommended_team": "Performance Engineering",
+      "draft_response": "Hello, thank you for reaching out to CloudSync support. We understand that your File Sync dashboard taking over 31 seconds to load is causing significant concern ahead of your board presentation on Tuesday. Our engineering team is reviewing your report to investigate the loading latency. We will follow up with updates as soon as possible.",
+      "needs_human_review": false,
+      "confidence": 0.95
+    },
+    "rule_results": [
+      {
+        "name": "issue_category_in",
+        "passed": true,
+        "detail": "got 'Performance', expected one of ['Performance']"
+      },
+      {
+        "name": "urgency_tier_in",
+        "passed": true,
+        "detail": "got 'P2', expected one of ['P2', 'P3']"
+      },
+      {
+        "name": "reasoning_contains_any",
+        "passed": true,
+        "detail": "reasoning did mention any of ['31 second', 'load', 'slow', 'performance']"
+      }
+    ],
+    "judge": {
+      "score": 1.0,
+      "explanation": "The produced output correctly identifies the issue as a performance regression (dashboard load time increasing to 31s) and assigns an appropriate urgency tier of P2, balancing the business deadline (board presentation Tuesday) without over-escalating to a P1 production outage."
+    },
+    "quality_score": 1.0,
+    "passed": true,
+    "error": null
   },
   {
     "id": "triage_case_05_how_to_new_customer",
     "task": "triage",
     "adversarial": false,
-    "quality_score": 0.0,
-    "passed": false,
-    "error": "classify_ticket not implemented yet"
+    "output": {
+      "product_area": "Integrations",
+      "issue_category": "How-To",
+      "urgency_tier": "P4",
+      "reasoning": "The customer is asking for best practices regarding Integrations configuration during their initial rollout. The signal phrase is 'point us to best practices for Integrations configuration'. Urgency is P4 because it is a low-impact inquiry from a new customer in a Staging environment with no production down or critical failure reported.",
+      "matched_kb_doc": "CloudSync \u2014 Product Reference > Core Modules > Integrations",
+      "recommended_team": "Customer Support",
+      "draft_response": "Hello, welcome to CloudSync! We are excited to help you with your rollout. For setting up your Jira integration and other connected services, please refer to our Integrations documentation for core modules. Let us know if you need any specific configuration assistance for your Staging environment.",
+      "needs_human_review": false,
+      "confidence": 0.95
+    },
+    "rule_results": [
+      {
+        "name": "issue_category_in",
+        "passed": true,
+        "detail": "got 'How-To', expected one of ['How-To', 'Onboarding']"
+      },
+      {
+        "name": "urgency_tier_in",
+        "passed": true,
+        "detail": "got 'P4', expected one of ['P4']"
+      },
+      {
+        "name": "needs_human_review",
+        "passed": true,
+        "detail": "got False, expected False"
+      }
+    ],
+    "judge": {
+      "score": 1.0,
+      "explanation": "The produced output correctly classifies the guidance request from a new customer in a staging environment as low-urgency (P4 / low-urgency guidance) without treating it as a bug or elevated urgency."
+    },
+    "quality_score": 1.0,
+    "passed": true,
+    "error": null
   },
   {
     "id": "triage_case_06_adversarial_vague_ticket",
     "task": "triage",
     "adversarial": true,
-    "quality_score": 0.0,
-    "passed": false,
-    "error": "classify_ticket not implemented yet"
+    "output": {
+      "product_area": "Unspecified",
+      "issue_category": "Bug",
+      "urgency_tier": "P3",
+      "reasoning": "The ticket is extremely ambiguous with the subject 'issue' and body 'It's not working again. Please help.' with no product, error, or reproduction details given. Urgency is set to P3 as moderate impact is assumed, and confidence is low requiring human review.",
+      "matched_kb_doc": null,
+      "recommended_team": "Support",
+      "draft_response": "Hello, thank you for reaching out. Could you please provide more details about the issue you are experiencing, including any error messages or steps to reproduce the problem? This will help us resolve it for you as quickly as possible.",
+      "needs_human_review": true,
+      "confidence": 0.1
+    },
+    "rule_results": [
+      {
+        "name": "needs_human_review",
+        "passed": true,
+        "detail": "got True, expected True"
+      },
+      {
+        "name": "matched_kb_doc_is_null",
+        "passed": true,
+        "detail": "matched_kb_doc=None"
+      },
+      {
+        "name": "max_confidence",
+        "passed": true,
+        "detail": "confidence=0.1 vs max 0.5"
+      }
+    ],
+    "judge": {
+      "score": 1.0,
+      "explanation": "The produced output correctly identifies that the ticket is unclassifiable due to lack of details, sets confidence low (0.1), and flags needs_human_review as true without inventing a specific product area or high urgency."
+    },
+    "quality_score": 1.0,
+    "passed": true,
+    "error": null
   },
   {
     "id": "account_case_01_churning_clear_signals",
     "task": "account_brief",
     "adversarial": false,
-    "quality_score": 0.0,
-    "passed": false,
-    "error": "summarize_account not implemented yet"
+    "output": {
+      "account_id": "ACC-2944",
+      "executive_summary": "Pinnacle Systems is currently on the Starter plan with an ARR of $48,000 and is classified with a Churning health status and a Declining usage trend. The account's renewal date is approaching on June 24, 2026, and primary contact Casey Brown, Director of IT, is facing internal changes following a champion departure. While the account record indicates 3 open tickets, there has been no ticket activity in the last 90 days. The TAM must proactively engage to address competitive displacement risks and support dissatisfaction ahead of the renewal.",
+      "risks": [
+        {
+          "issue": "Champion departure",
+          "quote": "Champion left the company \u2014 no replacement identified yet",
+          "ticket_id": "account_notes"
+        },
+        {
+          "issue": "Support dissatisfaction",
+          "quote": "Customer expressed frustration with response times in last sync",
+          "ticket_id": "account_notes"
+        },
+        {
+          "issue": "Competitive churn risk",
+          "quote": "Decision maker considering competing vendor evaluation",
+          "ticket_id": "account_notes"
+        }
+      ],
+      "talking_points": [
+        "Schedule an executive alignment call with Casey Brown to identify a new internal champion and decision-making stakeholders.",
+        "Prepare a TCO and ROI summary ahead of renewal to counter the competing vendor evaluation and justify the $48,000 ARR.",
+        "Review internal support escalation paths with the support management team to address the customer's stated frustration with response times."
+      ],
+      "generated_from_ticket_ids": [],
+      "prompt_version": "account_brief_v3"
+    },
+    "rule_results": [
+      {
+        "name": "account_exists",
+        "passed": true,
+        "detail": "account found=True"
+      },
+      {
+        "name": "min_risk_flags",
+        "passed": true,
+        "detail": "got 3 risks, need >= 1"
+      },
+      {
+        "name": "quotes_must_be_verbatim",
+        "passed": true,
+        "detail": "all quotes verbatim-grounded"
+      },
+      {
+        "name": "expected_quote_substrings_any",
+        "passed": true,
+        "detail": "risk quotes did include any of ['Champion left the company', 'frustration with response times', 'competing vendor evaluation']"
+      }
+    ],
+    "judge": {
+      "score": 1.0,
+      "explanation": "The produced output correctly identifies the three explicit escalation notes (champion departure, response-time frustration, and active competitor evaluation) as risks, includes verbatim quotes for each, and provides concrete, actionable talking points addressing all three churn signals."
+    },
+    "quality_score": 1.0,
+    "passed": true,
+    "error": null
   },
   {
     "id": "account_case_02_at_risk_p1_pattern",
     "task": "account_brief",
     "adversarial": false,
-    "quality_score": 0.0,
-    "passed": false,
-    "error": "summarize_account not implemented yet"
+    "output": {
+      "account_id": "ACC-3336",
+      "executive_summary": "Omni Consumer Products operates on the Business plan with an ARR of $500,000 and is currently categorized as At Risk due to an Inactive usage trend. The account is managed in the EU-West region within the Energy sector, with Quinn Wilson serving as VP Technology and primary contact. Renewal is scheduled for August 19, 2026, and the record shows 7 open tickets despite a verified count of 1 ticket in the last 90 days.",
+      "risks": [
+        {
+          "issue": "High frequency of P1 incidents",
+          "quote": "3 consecutive P1 tickets in the last 30 days",
+          "ticket_id": "account_notes"
+        },
+        {
+          "issue": "Competitor evaluation risk",
+          "quote": "Decision maker considering competing vendor evaluation",
+          "ticket_id": "account_notes"
+        },
+        {
+          "issue": "Severe performance degradation",
+          "quote": "We've noticed significant performance degradation in DataBridge Pro over the past 12 days. Page loads are taking 119+ seconds and API operations are timing out.",
+          "ticket_id": "TKT-10293"
+        }
+      ],
+      "talking_points": [
+        "Schedule an executive alignment meeting with Quinn Wilson to address the ongoing competitor evaluation and present a targeted retention proposal ahead of the 2026 renewal.",
+        "Coordinate with engineering to deliver a formal root-cause analysis for ticket TKT-10293 and present a performance remediation timeline for DataBridge Pro.",
+        "Review the account record discrepancy regarding the 7 open tickets versus recent activity to ensure all lingering technical blockers are fully resolved."
+      ],
+      "generated_from_ticket_ids": [
+        "TKT-10293"
+      ],
+      "prompt_version": "account_brief_v3"
+    },
+    "rule_results": [
+      {
+        "name": "account_exists",
+        "passed": true,
+        "detail": "account found=True"
+      },
+      {
+        "name": "min_risk_flags",
+        "passed": true,
+        "detail": "got 3 risks, need >= 1"
+      },
+      {
+        "name": "quotes_must_be_verbatim",
+        "passed": true,
+        "detail": "all quotes verbatim-grounded"
+      },
+      {
+        "name": "expected_quote_substrings_any",
+        "passed": true,
+        "detail": "risk quotes did include any of ['3 consecutive P1 tickets', 'competing vendor evaluation']"
+      }
+    ],
+    "judge": {
+      "score": 1.0,
+      "explanation": "The executive summary correctly reflects the Inactive usage trend for Omni Consumer Products, and the risks section successfully cites both escalation signals (the P1 pattern and the competitor evaluation) with grounded quotes from the account notes."
+    },
+    "quality_score": 1.0,
+    "passed": true,
+    "error": null
   },
   {
     "id": "account_case_03_at_risk_pricing_pressure",
     "task": "account_brief",
     "adversarial": false,
-    "quality_score": 0.0,
-    "passed": false,
-    "error": "summarize_account not implemented yet"
+    "output": {
+      "account_id": "ACC-8113",
+      "executive_summary": "Vertex Solutions is a Technology customer in the US-Central region on the Professional plan, generating 500000 USD in ARR. The account health status is currently marked as At Risk with a declining usage trend. Although the account record shows 1 open ticket and 2 P1 tickets in the last 30 days, there has been no ticket activity in the last 90 days. The renewal date is scheduled for May 9, 2027.",
+      "risks": [
+        {
+          "issue": "Pricing review request",
+          "quote": "Procurement team requested pricing review",
+          "ticket_id": "account_notes"
+        },
+        {
+          "issue": "Negative support sentiment",
+          "quote": "Negative sentiment detected in recent support tickets",
+          "ticket_id": "account_notes"
+        },
+        {
+          "issue": "Vendor evaluation consideration",
+          "quote": "Decision maker considering competing vendor evaluation",
+          "ticket_id": "account_notes"
+        }
+      ],
+      "talking_points": [
+        "Schedule a pricing alignment call with procurement to address the pricing review request ahead of renewal.",
+        "Prepare a TCO and ROI summary to counter the competing vendor evaluation and demonstrate platform value.",
+        "Perform a proactive account health audit to address any historical negative support sentiment despite the lack of recent ticket activity."
+      ],
+      "generated_from_ticket_ids": [],
+      "prompt_version": "account_brief_v3"
+    },
+    "rule_results": [
+      {
+        "name": "account_exists",
+        "passed": true,
+        "detail": "account found=True"
+      },
+      {
+        "name": "min_risk_flags",
+        "passed": true,
+        "detail": "got 3 risks, need >= 1"
+      },
+      {
+        "name": "quotes_must_be_verbatim",
+        "passed": true,
+        "detail": "all quotes verbatim-grounded"
+      },
+      {
+        "name": "expected_quote_substrings_any",
+        "passed": true,
+        "detail": "risk quotes did include any of ['pricing review', 'Negative sentiment', 'competing vendor evaluation']"
+      }
+    ],
+    "judge": {
+      "score": 1.0,
+      "explanation": "The produced output includes a concrete pricing and renewal-oriented action in the talking points (\"Schedule a pricing alignment call with procurement to address the pricing review request ahead of renewal\"), successfully capturing the commercial risk signal."
+    },
+    "quality_score": 1.0,
+    "passed": true,
+    "error": null
   },
   {
     "id": "account_case_04_at_risk_integration_concern",
     "task": "account_brief",
     "adversarial": false,
-    "quality_score": 0.0,
+    "output": {
+      "account_id": "ACC-9733",
+      "executive_summary": "Pied Piper Inc is a Professional plan tier customer in the Media industry generating 48000 USD in ARR. The account currently has a health status of At Risk with an increasing usage trend. Despite the account record showing 9 open tickets, there has been zero ticket activity in the last 90 days. The primary contact for this account is Riley Johnson, Chief Data Officer, located in the US-Central region.",
+      "risks": [
+        {
+          "issue": "Evaluating competitors",
+          "quote": "Decision maker considering competing vendor evaluation",
+          "ticket_id": "account_notes"
+        },
+        {
+          "issue": "Integration reliability concerns",
+          "quote": "IT team flagged integration reliability concerns",
+          "ticket_id": "account_notes"
+        }
+      ],
+      "talking_points": [
+        "Schedule a commercial alignment and renewal strategy call with procurement and Riley Johnson to address competing vendor evaluation.",
+        "Prepare a dedicated TCO and integration reliability summary ahead of the upcoming renewal to mitigate churn risk."
+      ],
+      "generated_from_ticket_ids": [],
+      "prompt_version": "account_brief_v3"
+    },
+    "rule_results": [
+      {
+        "name": "account_exists",
+        "passed": true,
+        "detail": "account found=True"
+      },
+      {
+        "name": "min_risk_flags",
+        "passed": true,
+        "detail": "got 2 risks, need >= 1"
+      },
+      {
+        "name": "quotes_must_be_verbatim",
+        "passed": true,
+        "detail": "all quotes verbatim-grounded"
+      },
+      {
+        "name": "expected_quote_substrings_any",
+        "passed": true,
+        "detail": "risk quotes did include any of ['competing vendor evaluation', 'integration reliability concerns']"
+      }
+    ],
+    "judge": {
+      "score": 0.0,
+      "explanation": "The produced output merges both the technical concern (integration reliability) and the commercial one (competing vendor evaluation) into a single combined talking point in the second item, rather than treating them as separate, distinct talking points as required by the rubric."
+    },
+    "quality_score": 0.5,
     "passed": false,
-    "error": "summarize_account not implemented yet"
+    "error": null
   },
   {
     "id": "account_case_05_healthy_no_false_positive",
     "task": "account_brief",
     "adversarial": false,
-    "quality_score": 0.0,
-    "passed": false,
-    "error": "summarize_account not implemented yet"
+    "output": {
+      "account_id": "ACC-5524",
+      "executive_summary": "Aviato Systems is on the Starter plan with an ARR of $240,000 and is currently categorized as Healthy with an increasing usage trend. The account's renewal date is July 12, 2026, and their current NPS score stands at 6. Notably, there has been no ticket activity in the last 90 days despite the account record showing 7 open tickets.",
+      "risks": [],
+      "talking_points": [
+        "Review the status of the 7 open tickets with Alex Morgan to ensure no unresolved issues are lingering despite the lack of recent ticket activity in the last 90 days.",
+        "Schedule a proactive check-in call with Alex Morgan to discuss optimization strategies and leverage their increasing usage trend ahead of the July 2026 renewal."
+      ],
+      "generated_from_ticket_ids": [],
+      "prompt_version": "account_brief_v3"
+    },
+    "rule_results": [
+      {
+        "name": "account_exists",
+        "passed": true,
+        "detail": "account found=True"
+      },
+      {
+        "name": "max_risk_flags",
+        "passed": true,
+        "detail": "got 0 risks, need <= 0"
+      }
+    ],
+    "judge": {
+      "score": 1.0,
+      "explanation": "The produced output correctly identifies Aviato Systems (ACC-5524) as Healthy with an increasing usage trend and a positive NPS, reporting no material risks (risks array is empty) and avoiding the invention of ungrounded negative framing or false positives, fully adhering to the rubric."
+    },
+    "quality_score": 1.0,
+    "passed": true,
+    "error": null
   },
   {
     "id": "account_case_06_adversarial_sparse_data",
     "task": "account_brief",
     "adversarial": true,
-    "quality_score": 0.0,
+    "output": {
+      "account_id": "ACC-3033",
+      "executive_summary": "Polaris Group is a Starter tier account in the Energy industry within the APAC region, contributing 120000 USD in ARR. The account currently maintains a Healthy health status with an Increasing usage trend and a renewal date of 2026-06-30. Although the account record shows 11 open tickets, there has been no ticket activity in the last 90 days. Primary stakeholder engagement is led by Taylor Smith, Director of Infrastructure.",
+      "risks": [],
+      "talking_points": [
+        "Schedule a proactive check-in call with Taylor Smith to review the 11 open tickets and align on resolution timelines.",
+        "Prepare a platform optimization review to support the increasing usage trend ahead of the 2026-06-30 renewal date."
+      ],
+      "generated_from_ticket_ids": [],
+      "prompt_version": "account_brief_v3"
+    },
+    "rule_results": [
+      {
+        "name": "account_exists",
+        "passed": true,
+        "detail": "account found=True"
+      },
+      {
+        "name": "max_risk_flags",
+        "passed": true,
+        "detail": "got 0 risks, need <= 0"
+      },
+      {
+        "name": "executive_summary_not_empty",
+        "passed": true,
+        "detail": ""
+      }
+    ],
+    "judge": {
+      "score": 0.0,
+      "explanation": "The produced output correctly notes that there has been no ticket activity in the last 90 days in the executive summary, but it includes a talking point instructing the user to 'review the 11 open tickets', which blindly trusts the stale account record open_tickets field and fails to correctly handle the zero-ticket window as required by the rubric."
+    },
+    "quality_score": 0.5,
     "passed": false,
-    "error": "summarize_account not implemented yet"
+    "error": null
   }
 ]
