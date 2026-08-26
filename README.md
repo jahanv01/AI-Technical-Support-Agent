@@ -4,6 +4,27 @@ Zycus AI Engineer Intern take-home: an LLM-powered ticket triage agent (Task 1),
 a TAM account health summariser (Task 2), and an eval harness for both (Task 3).
 Design note: [DESIGN_NOTE.md](DESIGN_NOTE.md). Prompt version history: [PROMPT_CHANGELOG.md](PROMPT_CHANGELOG.md).
 
+## Quick start (Linux / macOS / WSL)
+
+```bash
+git clone <this-repo-url>
+cd AI-Technical-Support-Agent
+./install.sh --api-key YOUR_GEMINI_KEY
+```
+
+That's it. The script creates a venv, installs dependencies, writes `.env`,
+and starts the API server in the background. Follow the printed URLs to try
+the endpoints. Get a free key at [aistudio.google.com/apikey](https://aistudio.google.com/apikey).
+
+```bash
+./uninstall.sh          # stop server + remove .venv and .cache
+./uninstall.sh --keep-env  # stop server only, keep .venv
+```
+
+> **Windows (native):** use the manual steps below instead.
+
+---
+
 ## Setup from scratch
 
 ### 1. Clone the repository
@@ -19,13 +40,18 @@ Unlike a typical assignment repo, the mock dataset is **already included** —
 `data/tickets.json` (500 tickets), `data/accounts.json` (50 accounts), and
 `knowledge-base/*.md` (9 docs) are committed as-is, since they're required
 for the eval harness and CI to run without any manual setup step. See
-[DATA_SCHEMA.md](DATA_SCHEMA.md) for field-level documentation.
+[data/README.md](data/README.md) for field-level documentation.
 
 ### 3. Create a virtual environment
 
 ```bash
+# Windows
 python -m venv .venv
-# Windows: .venv\Scripts\activate    macOS/Linux: source .venv/bin/activate
+.venv\Scripts\activate
+
+# macOS / Linux
+python3 -m venv .venv
+source .venv/bin/activate
 ```
 
 ### 4. Install dependencies
@@ -50,6 +76,11 @@ change it.
 
 ```bash
 uvicorn app.api:app --reload
+```
+
+Interactive docs (Swagger UI): http://127.0.0.1:8000/docs
+
+```bash
 curl -X POST http://127.0.0.1:8000/triage \
   -H "Content-Type: application/json" \
   -d '{"subject": "SSO configuration not working for new users", "body": "308 people blocked from accessing the platform..."}'
@@ -66,6 +97,8 @@ print(result.model_dump_json(indent=2))
 ```
 
 ## Sample run — Task 2 (account brief)
+
+> Requires the server from Task 1 to be running (`uvicorn app.api:app --reload`).
 
 ```bash
 curl http://127.0.0.1:8000/account-brief/ACC-2944

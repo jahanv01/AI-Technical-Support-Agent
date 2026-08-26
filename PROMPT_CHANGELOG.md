@@ -28,3 +28,15 @@ eval/cache key, so scoring stays attributable to a specific prompt revision.
   model stated specific recent-ticket claims sourced from the stale account
   field despite the verified 90-day ticket count being zero (caught by the
   adversarial sparse-data eval case).
+
+## account_brief_v4
+- Synthesize step: extended the stale-`open_tickets` ban to explicitly cover
+  `talking_points` as well (v3 phrasing was ambiguous — model still wrote
+  "review the 11 open tickets" in a talking point while respecting the ban in
+  the executive summary). Fixes intermittent CI failure on
+  `account_case_06_adversarial_sparse_data`.
+- Synthesize step: added "one talking point per distinct risk category — do
+  not bundle a technical concern and a commercial concern into the same
+  bullet" — fixes intermittent CI failure on
+  `account_case_04_at_risk_integration_concern` where the model merged
+  integration reliability and competitor evaluation into a single point.

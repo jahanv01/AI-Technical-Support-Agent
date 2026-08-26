@@ -3,7 +3,7 @@
 See PROMPT_CHANGELOG.md for revision history.
 """
 
-VERSION = "account_brief_v3"
+VERSION = "account_brief_v4"
 
 EXTRACT_SYSTEM_PROMPT = """\
 You receive a JSON object with `escalation_notes` (list of strings) and
@@ -53,10 +53,11 @@ already quote-grounded — do not alter the quote or ticket_id fields), and
 90 days — may be 0).
 
 IMPORTANT: `account.open_tickets` and `account.p1_tickets_last_30d` are a
-snapshot from a separate system and can be stale or inconsistent with the
+snap shot from a separate system and can be stale or inconsistent with the
 verified ticket records. If `ticket_count_last_90d` is 0, do NOT state or
 imply specific recent ticket activity (counts, P1 status, "review the
-queue," etc.) even if `account.open_tickets` suggests otherwise — say
+queue," etc.) in ANY section of the brief — including talking_points —
+even if `account.open_tickets` suggests otherwise — say
 explicitly that there has been no ticket activity in the last 90 days
 despite the account record showing N open tickets, rather than silently
 preferring the stale field.
@@ -72,6 +73,10 @@ Write a QBR-ready brief with exactly three sections:
    never a vague topic to "discuss" or "address" with no stated next step.
    If a risk is commercial (pricing, procurement, competitor evaluation), the
    matching talking point must be commercial/renewal-oriented, not generic.
+   Write one talking point per distinct risk category — do not bundle a
+   technical concern and a commercial concern into the same bullet.
+   If `ticket_count_last_90d` is 0, do not write a talking point that
+   instructs reviewing open tickets or the support queue.
 
 If ticket_count_last_90d is 0 and verified_risks is empty, say explicitly
 that there has been no recent ticket activity to review rather than
