@@ -112,8 +112,11 @@ def generate_structured(
             result = client.models.generate_content(model=model, contents=json.dumps(user_payload), config=config)
             break
         except genai_errors.ClientError as e:
-            # 429 rate limit: the API tells us how long to actually wait
-            # (retryDelay), so honor that instead of guessing.
+            # Daily quota exhaustion is not retryable — fail immediately rather
+            # than burning 3 attempts × 18 s on calls that will all be rejected.
+            if e.code == 429 and "PerDay" in str(e):
+                raise
+            # Per-minute rate limit: honor the API's retryDelay.
             if e.code == 429 and attempt < max_attempts:
                 match = re.search(r"'retryDelay': '([\d.]+)s'", str(e))
                 time.sleep(float(match.group(1)) + 0.5 if match else 15.0)
