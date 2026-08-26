@@ -49,8 +49,11 @@ with tab2:
             st.subheader("Executive summary")
             st.write(brief.executive_summary)
             st.subheader("Risks")
-            for risk in brief.risks:
-                st.markdown(f"- **{risk.issue}** — *\"{risk.quote}\"* ({risk.ticket_id})")
+            if brief.risks:
+                for risk in brief.risks:
+                    st.markdown(f"- **{risk.issue}** — *\"{risk.quote}\"* ({risk.ticket_id})")
+            else:
+                st.success("No churn risk or escalation signals detected in the last 90 days.")
             st.subheader("Talking points")
             for point in brief.talking_points:
                 st.markdown(f"- {point}")
