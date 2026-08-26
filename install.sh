@@ -121,9 +121,33 @@ echo ""
 
 echo "━━━ Next steps ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
 echo "  Run eval harness:"
-echo "    source .venv/bin/activate && python -m eval.run_eval"
+echo "    .venv/bin/python -m eval.run_eval"
 echo ""
-echo "  Streamlit UI:"
-echo "    source .venv/bin/activate && streamlit run ui/streamlit_app.py"
+
+# ── start Streamlit in background ─────────────────────────────────────────────
+STREAMLIT_PORT=8501
+if [[ -f .streamlit.pid ]]; then
+  OLD_SPID=$(cat .streamlit.pid)
+  if kill -0 "$OLD_SPID" 2>/dev/null; then
+    kill "$OLD_SPID"; sleep 1
+  fi
+  rm -f .streamlit.pid
+fi
+nohup .venv/bin/streamlit run ui/streamlit_app.py \
+  --server.headless true \
+  --server.port "$STREAMLIT_PORT" \
+  > streamlit.log 2>&1 &
+echo $! > .streamlit.pid
+
+# wait up to 8 s for Streamlit to be ready
+for i in $(seq 1 16); do
+  if curl -s -o /dev/null "http://localhost:${STREAMLIT_PORT}"; then
+    break
+  fi
+  sleep 0.5
+done
+
+echo "  ✨ Bonus UI (TAM demo):"
+echo "     http://localhost:${STREAMLIT_PORT}"
 echo ""
-echo "  To stop the server: ./uninstall.sh"
+echo "  To stop everything: ./uninstall.sh"

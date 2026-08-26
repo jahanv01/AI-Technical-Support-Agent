@@ -15,19 +15,31 @@ done
 if [[ -f .server.pid ]]; then
   PID=$(cat .server.pid)
   if kill -0 "$PID" 2>/dev/null; then
-    echo "Stopping server (PID $PID)..."
-    kill "$PID"
-    sleep 1
+    echo "Stopping API server (PID $PID)..."
+    kill "$PID"; sleep 1
     echo "Server stopped."
   else
-    echo "Server process $PID was not running."
+    echo "API server process $PID was not running."
   fi
   rm -f .server.pid
 else
   echo "No .server.pid found — server may not have been started by install.sh."
 fi
 
-rm -f server.log
+# ── stop Streamlit ────────────────────────────────────────────────────────────
+if [[ -f .streamlit.pid ]]; then
+  SPID=$(cat .streamlit.pid)
+  if kill -0 "$SPID" 2>/dev/null; then
+    echo "Stopping Streamlit UI (PID $SPID)..."
+    kill "$SPID"; sleep 1
+    echo "Streamlit stopped."
+  else
+    echo "Streamlit process $SPID was not running."
+  fi
+  rm -f .streamlit.pid
+fi
+
+rm -f server.log streamlit.log
 
 # ── clean up generated files ──────────────────────────────────────────────────
 rm -rf .cache/

@@ -4,6 +4,16 @@ Zycus AI Engineer Intern take-home: an LLM-powered ticket triage agent (Task 1),
 a TAM account health summariser (Task 2), and an eval harness for both (Task 3).
 Design note: [DESIGN_NOTE.md](DESIGN_NOTE.md). Prompt version history: [PROMPT_CHANGELOG.md](PROMPT_CHANGELOG.md).
 
+## Prerequisites
+
+- **Python 3.9+** — `python3 --version` (Linux/macOS) or `python --version` (Windows)
+- **pip** — comes with Python; verify with `pip --version`
+- **venv** — included in Python 3.3+; on Ubuntu may need `sudo apt install python3-venv`
+- A free **Gemini API key** — [aistudio.google.com/apikey](https://aistudio.google.com/apikey)
+
+> **Note on LLM provider:** This project uses the **Google Gemini API** because it offers a free tier suitable for students and evaluation purposes (no billing required). If you want to swap in **OpenAI** or **Anthropic Claude** instead, you would need to replace `app/llm_client.py` with the respective SDK, update `app/config.py` to read the new key/model env vars, and adjust the structured-output call pattern (`response_schema` is Gemini-specific — OpenAI uses `response_format`, Claude uses tool-calling for JSON output).
+- **curl** (for the quick-start script) — pre-installed on macOS/Linux/WSL; Windows users use the manual steps below
+
 ## Quick start (Linux / macOS / WSL)
 
 ```bash
@@ -13,15 +23,29 @@ cd AI-Technical-Support-Agent
 ```
 
 That's it. The script creates a venv, installs dependencies, writes `.env`,
-and starts the API server in the background. Follow the printed URLs to try
-the endpoints. Get a free key at [aistudio.google.com/apikey](https://aistudio.google.com/apikey).
+starts the API server and Streamlit UI in the background, and prints live
+output from both tasks. Get a free key at [aistudio.google.com/apikey](https://aistudio.google.com/apikey).
 
 ```bash
-./uninstall.sh          # stop server + remove .venv and .cache
-./uninstall.sh --keep-env  # stop server only, keep .venv
+./uninstall.sh          # stop everything + remove .venv and .cache
+./uninstall.sh --keep-env  # stop processes only, keep .venv
 ```
 
-> **Windows (native):** use the manual steps below instead.
+## Quick start (Windows — PowerShell)
+
+```powershell
+git clone <this-repo-url>
+cd AI-Technical-Support-Agent
+.\install.ps1 -ApiKey YOUR_GEMINI_KEY
+```
+
+```powershell
+.\uninstall.ps1           # stop everything + remove .venv and .cache
+.\uninstall.ps1 -KeepEnv  # stop processes only, keep .venv
+```
+
+> If you see *"running scripts is disabled"*, run this once first:
+> `Set-ExecutionPolicy -Scope CurrentUser RemoteSigned`
 
 ---
 
