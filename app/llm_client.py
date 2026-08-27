@@ -5,8 +5,10 @@ is fully deprecated as of 2025 — no bug fixes, no updates).
 
 The cache is what actually *guarantees* Task 2's determinism requirement
 (temperature=0 alone narrows but doesn't guarantee bit-identical output) — it
-keys on a hash of (prompt_version, canonicalized input), stores to CACHE_DIR
-as JSON, and is always checked before calling the API.
+keys on a hash of (prompt_version, system_prompt, canonicalized input), so
+editing a prompt's wording (even without bumping its VERSION) invalidates
+old cache entries instead of silently replaying stale classifications.
+Stores to CACHE_DIR as JSON, and is always checked before calling the API.
 """
 from __future__ import annotations
 
@@ -66,8 +68,11 @@ def _get_client() -> genai.Client:
     return _client
 
 
-def _cache_key(prompt_version: str, payload: dict[str, Any]) -> str:
-    blob = json.dumps({"prompt_version": prompt_version, "payload": payload}, sort_keys=True)
+def _cache_key(prompt_version: str, system_prompt: str, payload: dict[str, Any]) -> str:
+    blob = json.dumps(
+        {"prompt_version": prompt_version, "system_prompt": system_prompt, "payload": payload},
+        sort_keys=True,
+    )
     return hashlib.sha256(blob.encode("utf-8")).hexdigest()
 
 
@@ -91,7 +96,7 @@ def generate_structured(
     actual Pydantic model (cheap insurance against schema drift the API
     might still let through).
     """
-    key = _cache_key(prompt_version, user_payload)
+    key = _cache_key(prompt_version, system_prompt, user_payload)
     cache_file = _cache_path(key)
     if use_cache and cache_file.exists():
         return json.loads(cache_file.read_text(encoding="utf-8"))["response"]

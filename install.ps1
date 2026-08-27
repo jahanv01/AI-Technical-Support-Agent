@@ -33,12 +33,11 @@ if (-not (Test-Path ".venv")) {
 
 $pip      = ".venv\Scripts\pip.exe"
 $uvicorn  = ".venv\Scripts\uvicorn.exe"
-$streamlit = ".venv\Scripts\streamlit.exe"
 $pyExe    = ".venv\Scripts\python.exe"
 
 Write-Host "Installing dependencies..."
-& $pip install --quiet --upgrade pip
-& $pip install --quiet -r requirements.txt
+& $pyExe -m pip install --quiet --upgrade pip
+& $pyExe -m pip install --quiet -r requirements.txt
 
 # ── environment file ──────────────────────────────────────────────────────────
 if (-not (Test-Path ".env")) { Copy-Item ".env.example" ".env" }
@@ -86,7 +85,7 @@ Write-Host ""
 
 # ── live sample calls ─────────────────────────────────────────────────────────
 Write-Host "--- Task 1 - Triage sample ---"
-$body = '{"subject":"SSO configuration not working for new users","body":"308 people blocked from accessing the platform since this morning."}'
+$body = '{"subject":"SSO configuration not working for new users","body":"308 people blocked from accessing the platform since this morning. They cannot log in via our corporate SSO provider"}'
 try {
     $r = Invoke-RestMethod -Uri "http://127.0.0.1:$Port/triage" -Method Post `
         -ContentType "application/json" -Body $body
@@ -110,8 +109,8 @@ if (Test-Path ".streamlit.pid") {
     Remove-Item ".streamlit.pid"
 }
 
-$slProc = Start-Process -FilePath $streamlit `
-    -ArgumentList "run", "ui/streamlit_app.py", "--server.headless", "true", "--server.port", "$streamlitPort" `
+$slProc = Start-Process -FilePath $pyExe `
+    -ArgumentList "-m", "streamlit", "run", "ui/streamlit_app.py", "--server.headless", "true", "--server.port", "$streamlitPort" `
     -RedirectStandardOutput "streamlit.log" -RedirectStandardError "streamlit_err.log" `
     -PassThru -WindowStyle Hidden
 $slProc.Id | Set-Content ".streamlit.pid"
