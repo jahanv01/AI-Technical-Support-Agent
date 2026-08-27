@@ -85,7 +85,7 @@ Write-Host ""
 
 # ── live sample calls ─────────────────────────────────────────────────────────
 Write-Host "--- Task 1 - Triage sample ---"
-$body = '{"subject":"SSO configuration not working for new users","body":"308 people blocked from accessing the platform since this morning. They cannot log in via our corporate SSO provider"}'
+$body = '{"subject":"SSO configuration not working for new users","body":"308 people blocked from accessing the platform since this morning. They cannot log in via our corporate SSO provider."}'
 try {
     $r = Invoke-RestMethod -Uri "http://127.0.0.1:$Port/triage" -Method Post `
         -ContentType "application/json" -Body $body
